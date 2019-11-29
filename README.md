@@ -1,35 +1,33 @@
-## The XBPS source packages collection
+## The Plan 10 source packages collection
 
-This repository contains the XBPS source packages collection to build binary packages
-for the Void Linux distribution.
+This repository contains the Plan 10 source packages collection to build binary packages for the Plan 10 Linux distribution.
 
-The included `xbps-src` script will fetch and compile the sources, and install its
+The included `pio-src` script will fetch and compile the sources, and install its
 files into a `fake destdir` to generate XBPS binary packages that can be installed
-or queried through the `xbps-install(1)` and `xbps-query(1)` utilities, respectively.
+or queried through the `ppk install(1)` and `ppk search(1)` utilities, respectively.
 
 ### Requirements
 
 - GNU bash
-- xbps >= 0.55
-- curl(1) - required by `xbps-src update-check`
+- ppk >= 0.55
+- curl(1) - required by `ppk-src update-check`
 - flock(1) - util-linux
 - install(1) - coreutils
 - other common POSIX utilities included by default in almost all UNIX systems.
 
-`xbps-src` requires a utility to chroot and bind mount existing directories
-into a `masterdir` that is used as its main `chroot` directory. `xbps-src` supports
+`ppk-src` requires a utility to chroot and bind mount existing directories
+into a `masterdir` that is used as its main `chroot` directory. `ppk-src` supports
 multiple utilities to accomplish this task:
 
  - `bwrap` - bubblewrap, see https://github.com/projectatomic/bubblewrap.
  - `ethereal` - only useful for one-shot containers, i.e docker (used with travis).
- - `xbps-uunshare(1)` - XBPS utility that uses `user_namespaces(7)` (part of xbps, default).
- - `xbps-uchroot(1)` - XBPS utility that uses `namespaces` and must be `setgid` (part of xbps).
+ - `ppk-uunshare(1)` - ppk utility that uses `user_namespaces(7)` (part of ppk, default).
+ - `ppk-uchroot(1)` - ppk utility that uses `namespaces` and must be `setgid` (part of ppk).
  - `proot(1)` - utility that implements chroot/bind mounts in user space, see https://proot-me.github.io/.
 
-> NOTE: you don't need to be `root` to use `xbps-src`, use your preferred chroot style as explained
-below.
+> NOTE: you don't need to be `root` to use `ppk-src`, use your preferred chroot style as explained below.
 
-#### xbps-uunshare(1)
+#### ppk-uunshare(1)
 
 This utility requires these Linux kernel options:
 
@@ -41,7 +39,7 @@ This utility requires these Linux kernel options:
 This is the default method, and if your system does not support any of the required kernel
 options it will fail with `EINVAL (Invalid argument)`.
 
-#### xbps-uchroot(1)
+#### ppk-uchroot(1)
 
 This utility requires these Linux kernel options:
 
@@ -50,23 +48,23 @@ This utility requires these Linux kernel options:
 - CONFIG\_PID\_NS
 - CONFIG\_UTS\_NS
 
-Your user must be added to a special group to be able to use `xbps-uchroot(1)` and the
+Your user must be added to a special group to be able to use `ppk-uchroot(1)` and the
 executable must be `setgid`:
 
-    # chown root:<group> xbps-uchroot
-    # chmod 4750 xbps-uchroot
+    # chown root:<group> ppk-uchroot
+    # chmod 4750 ppk-uchroot
     # usermod -a -G <group> <user>
 
 > NOTE: by default in void you shouldn't do this manually, your user must be a member of
-the `xbuilder` group.
+the `ppkbuilder` group.
 
 To enable it:
 
-    $ cd void-packages
-    $ echo XBPS_CHROOT_CMD=uchroot >> etc/conf
+    $ cd plan10-pkg
+    $ echo PPK_CHROOT_CMD=uchroot >> etc/conf
 
 If for some reason it's erroring out as `ERROR clone (Operation not permitted)`, check that
-your user is a member of the required `group` and that `xbps-uchroot(1)` utility has the
+your user is a member of the required `group` and that `ppk-uchroot(1)` utility has the
 proper permissions and owner/group as explained above.
 
 #### proot(1)
@@ -77,22 +75,22 @@ for more information.
 
 To enable it:
 
-    $ cd void-packages
-    $ echo XBPS_CHROOT_CMD=proot >> etc/conf
+    $ cd plan10-pkg
+    $ echo PPK_CHROOT_CMD=proot >> etc/conf
 
-### Quick setup in Void
+### Quick setup in Plan 10
 
-Clone the `void-packages` git repository, install the bootstrap packages:
+Clone the `plan10-pkg` git repository, install the bootstrap packages:
 
 ```
-$ git clone git://github.com/void-linux/void-packages.git
-$ cd void-packages
-$ ./xbps-src binary-bootstrap
+$ git clone git://github.com/plantenos/plan10-pkg.git
+$ cd plan10-pkg
+$ ./ppk-src binary-bootstrap
 ```
 
 Type:
 
-     $ ./xbps-src -h
+     $ ./ppk-src -h
 
 to see all available targets/options and start building any available package
 in the `srcpkgs` directory.
@@ -111,14 +109,14 @@ If you don't want to waste your time building everything from scratch probably i
 ### Configuration
 
 The `etc/defaults.conf` file contains the possible settings that can be overridden
-through the `etc/conf` configuration file for the `xbps-src` utility; if that file
-does not exist, will try to read configuration settings from `~/.xbps-src.conf`.
+through the `etc/conf` configuration file for the `ppk-src` utility; if that file
+does not exist, will try to read configuration settings from `~/.ppk-src.conf`.
 
 If you want to customize default `CFLAGS`, `CXXFLAGS` and `LDFLAGS`, don't override
 those defined in `etc/defaults.conf`, set them on `etc/conf` instead i.e:
 
-    $ echo 'XBPS_CFLAGS="your flags here"' >> etc/conf
-    $ echo 'XBPS_LDFLAGS="your flags here"' >> etc/conf
+    $ echo 'PPK_CFLAGS="your flags here"' >> etc/conf
+    $ echo 'PPK_LDFLAGS="your flags here"' >> etc/conf
 
 Native and cross compiler/linker flags are set per architecture in `common/build-profiles`
 and `common/cross-profiles` respectively. Ideally those settings are good enough by default,
@@ -136,11 +134,11 @@ and edit it accordingly to your needs.
 
 The following directory hierarchy is used with a default configuration file:
 
-         /void-packages
+         /plan10-pkg
             |- common
             |- etc
             |- srcpkgs
-            |  |- xbps
+            |  |- ppk
             |     |- template
             |
             |- hostdir
@@ -154,7 +152,7 @@ The following directory hierarchy is used with a default configuration file:
             |  |- builddir -> ...
             |  |- destdir -> ...
             |  |- host -> bind mounted from <hostdir>
-            |  |- void-packages -> bind mounted from <void-packages>
+            |  |- plan10-pkg -> bind mounted from <plan10-pkg>
 
 
 The description of these directories is as follows:
@@ -162,8 +160,8 @@ The description of these directories is as follows:
  - `masterdir`: master directory to be used as rootfs to build/install packages.
  - `builddir`: to unpack package source tarballs and where packages are built.
  - `destdir`: to install packages, aka **fake destdir**.
- - `hostdir/ccache`: to store ccache data if the `XBPS_CCACHE` option is enabled.
- - `hostdir/distcc-<arch>`: to store distcc data if the `XBPS_DISTCC` option is enabled.
+ - `hostdir/ccache`: to store ccache data if the `PPK_CCACHE` option is enabled.
+ - `hostdir/distcc-<arch>`: to store distcc data if the `PPK_DISTCC` option is enabled.
  - `hostdir/repocache`: to store binary packages from remote repositories.
  - `hostdir/sources`: to store package sources.
  - `hostdir/binpkgs`: local repository to store generated binary packages.
